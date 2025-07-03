@@ -1,0 +1,75 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_DIR 10
+#define MAX_FILES 10
+
+typedef struct {
+    char name[50];
+} File;
+
+typedef struct {
+    char name[50];
+    File files[MAX_FILES];
+    int fileCount;
+} Directory;
+
+typedef struct {
+    Directory directories[MAX_DIR];
+    int dirCount;
+} FileSystem;
+
+void initializeFileSystem(FileSystem *fs) {
+    fs->dirCount = 0;
+}
+
+void createDirectory(FileSystem *fs, const char *dirName) {
+    if (fs->dirCount < MAX_DIR) {
+        strcpy(fs->directories[fs->dirCount].name, dirName);
+        fs->directories[fs->dirCount].fileCount = 0;
+        fs->dirCount++;
+    } else {
+        printf("Maximum directory limit reached.\n");
+    }
+}
+
+void addFileToDirectory(FileSystem *fs, const char *dirName, const char *fileName) {
+    for (int i = 0; i < fs->dirCount; i++) {
+        if (strcmp(fs->directories[i].name, dirName) == 0) {
+            if (fs->directories[i].fileCount < MAX_FILES) {
+                strcpy(fs->directories[i].files[fs->directories[i].fileCount].name, fileName);
+                fs->directories[i].fileCount++;
+            } else {
+                printf("Maximum file limit reached in directory %s.\n", dirName);
+            }
+            return;
+        }
+    }
+    printf("Directory %s not found.\n", dirName);
+}
+
+void displayFileSystem(FileSystem *fs) {
+    for (int i = 0; i < fs->dirCount; i++) {
+        printf("Directory: %s\n", fs->directories[i].name);
+        for (int j = 0; j < fs->directories[i].fileCount; j++) {
+            printf("  File: %s\n", fs->directories[i].files[j].name);
+        }
+    }
+}
+
+int main() {
+    FileSystem fs;
+    initializeFileSystem(&fs);
+
+    createDirectory(&fs, "Documents");
+    createDirectory(&fs, "Pictures");
+
+    addFileToDirectory(&fs, "Documents", "Resume.docx");
+    addFileToDirectory(&fs, "Documents", "CoverLetter.docx");
+    addFileToDirectory(&fs, "Pictures", "Vacation.jpg");
+
+    displayFileSystem(&fs);
+
+    return 0;
+}

@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_PROCESSES 5
+#define MAX_RESOURCES 3
+
+int allocation[MAX_PROCESSES][MAX_RESOURCES];
+int max[MAX_PROCESSES][MAX_RESOURCES];
+int need[MAX_PROCESSES][MAX_RESOURCES];
+int available[MAX_RESOURCES];
+int finish[MAX_PROCESSES];
+int safeSequence[MAX_PROCESSES];
+
+bool isSafe() {
+    int work[MAX_RESOURCES];
+    for (int i = 0; i < MAX_RESOURCES; i++)
+        work[i] = available[i];
+
+    for (int count = 0; count < MAX_PROCESSES; count++) {
+        finish[count] = 0;
+    }
+
+    int k = 0;
+    while (k < MAX_PROCESSES) {
+        bool found = false;
+        for (int p = 0; p < MAX_PROCESSES; p++) {
+            if (finish[p] == 0) {
+                int j;
+                for (j = 0; j < MAX_RESOURCES; j++) {
+                    if (need[p][j] > work[j])
+                        break;
+                }
+                if (j == MAX_RESOURCES) {
+                    for (int m = 0; m < MAX_RESOURCES; m++)
+                        work[m] += allocation[p][m];
+                    safeSequence[count++] = p;
+                    finish[p] = 1;
+                    found = true;
+                }
+            }
+        }
+        if (!found)
+            break;
+        k++;
+    }
+
+    return (k == MAX_PROCESSES);
+}
+
+void requestResources(int processID, int request[]) {
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        if (request[i] > need[processID][i]) {
+            printf("Error: Process has exceeded its maximum claim.\n");
+            return;
+        }
+    }
+
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        if (request[i] > available[i]) {
+            printf("Process is waiting for resources.\n");
+            return;
+        }
+    }
+
+    for (int i = 0; i < MAX_RESOURCES; i++) {
+        available[i] -= request[i];
+        allocation[processID][i] += request[i];
+        need[processID][i] -= request[i];
+    }
+
+    if (isSafe()) {
+        printf("Resources allocated successfully.\n");
+    } else {
+        printf("Resources cannot be allocated, rolling back.\n        ");
+        for (int i = 0; i < MAX_RESOURCES; i++) {
+            available[i] += request[i];
+            allocation[processID][i] -= request[i];
+            need[processID][i] += request[i];
+        }
+    }
+}
+
+int main() {
+    // Initialize the available resources
+    available[0] = 3; // Example values
+    available[1] = 2;
+    available[2] = 2;
+
+    // Initialize the maximum resources for each process
+    max[0][0] = 7; max[0][1] = 5; max[0][2] = 3;
+    max[1][0] = 3; max[1][1] = 2; max[1][2] = 2;
+    max[2][0] = 9; max[2][1] = 0; max[2][2] = 2;
+    max[3][0] = 2; max[3][1] = 2; max[3][2] = 2;
+    max[4][0] = 4; max[4][1] = 3; max[4][2] = 3;
+
+    // Initialize the allocation matrix
+    allocation[0][0] = 0; allocation[0][1] = 1; allocation[0][2] = 0;
+    allocation[1][0] = 2; allocation[1][1] = 0; allocation[1][2] = 0;
+    allocation[2][0] = 3; allocation[2][1] = 0; allocation[2][2] = 2;
+    allocation[3][0] = 2; allocation[3][1] = 1; allocation[3][2] = 1;
+    allocation[4][0] = 0; allocation[4][1] = 0; allocation[4][2] = 2;
+
+    // Initialize the need matrix
+    for (int i = 0; i < MAX_PROCESSES; i++)
+        for (int j = 0; j < MAX_RESOURCES; j++)
+            need[i][j] = max[i][j] - allocation[i][j];
+
+    int request1[] = {1, 0, 2}; // Example request from process 0
+    requestResources(0, request1);
+
+    return 0;
+}

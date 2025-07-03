@@ -1,0 +1,48 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_FILES 100
+#define FILENAME_LENGTH 50
+
+typedef struct {
+    char name[FILENAME_LENGTH];
+} File;
+
+typedef struct {
+    File files[MAX_FILES];
+    int fileCount;
+} Directory;
+
+void initializeDirectory(Directory *dir) {
+    dir->fileCount = 0;
+}
+
+int addFile(Directory *dir, const char *filename) {
+    if (dir->fileCount >= MAX_FILES) {
+        return -1; // Directory is full
+    }
+    strncpy(dir->files[dir->fileCount].name, filename, FILENAME_LENGTH);
+    dir->fileCount++;
+    return 0; // Success
+}
+
+void listFiles(const Directory *dir) {
+    printf("Files in directory:\n");
+    for (int i = 0; i < dir->fileCount; i++) {
+        printf("%s\n", dir->files[i].name);
+    }
+}
+
+int main() {
+    Directory myDirectory;
+    initializeDirectory(&myDirectory);
+
+    addFile(&myDirectory, "file1.txt");
+    addFile(&myDirectory, "file2.txt");
+    addFile(&myDirectory, "file3.txt");
+
+    listFiles(&myDirectory);
+
+    return 0;
+}

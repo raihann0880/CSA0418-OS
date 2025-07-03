@@ -1,0 +1,49 @@
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
+int main() {
+    // Using fcntl
+    int fd = open("example.txt", O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+    if (fd == -1) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    // Using lseek
+    off_t offset = lseek(fd, 0, SEEK_END);
+    if (offset == -1) {
+        perror("Error seeking in file");
+        close(fd);
+        return 1;
+    }
+
+    // Using fstat
+    struct stat fileStat;
+    if (fstat(fd, &fileStat) == -1) {
+        perror("Error getting file status");
+        close(fd);
+        return 1;
+    }
+
+    // Using opendir
+    DIR *dir = opendir(".");
+    if (dir == NULL) {
+        perror("Error opening directory");
+        close(fd);
+        return 1;
+    }
+
+    // Using readdir
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        printf("Found file: %s\n", entry->d_name);
+    }
+
+    // Cleanup
+    closedir(dir);
+    close(fd);
+    return 0;
+}

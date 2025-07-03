@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+
+#define SHM_SIZE 1024
+
+int main() {
+    int shmid;
+    key_t key = 1234;
+    char *str;
+
+    // Create shared memory segment
+    shmid = shmget(key, SHM_SIZE, 0666 | IPC_CREAT);
+    str = (char*) shmat(shmid, (void*)0, 0);
+
+    // Write to shared memory
+    printf("Write Data: ");
+    fgets(str, SHM_SIZE, stdin);
+
+    // Detach from shared memory
+    shmdt(str);
+
+    // Wait for user input before reading
+    printf("Press Enter to read from shared memory...\n");
+    getchar();
+
+    // Read from shared memory
+    str = (char*) shmat(shmid, (void*)0, 0);
+    printf("Data read from shared memory: %s\n", str);
+
+    // Detach and delete shared memory
+    shmdt(str);
+    shmctl(shmid, IPC_RMID, NULL);
+
+    return 0;
+}
